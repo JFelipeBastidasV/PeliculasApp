@@ -104,7 +104,12 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
             AgregarPeliculaDialog(
                 onDismiss = { showDialog = false },
                 onConfirm = { titulo, sinopsis, genero, anno, duracion ->
-                    viewModel.addPeliculas(titulo, sinopsis, genero, anno, duracion)
+                    viewModel.addPeliculas(
+                        titulo,
+                        sinopsis,
+                        genero,
+                        anno,
+                        duracion)
                     showDialog = false
                     Toast.makeText(
                         context,
@@ -130,11 +135,21 @@ fun PeliculaCard(pelicula: Pelicula, onDeleteClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = pelicula.titulo, style = MaterialTheme.typography.titleLarge)
-                Text(text = "Sinopsis: ${pelicula.sinopsis}", style = MaterialTheme.typography.bodyMedium)
-                Text(text = "Género: ${pelicula.genero}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Año: ${pelicula.annoLanzamiento}", style = MaterialTheme.typography.bodySmall)
-                Text(text = "Duración: ${pelicula.duracion}", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = pelicula.titulo,
+                    style = MaterialTheme.typography.titleLarge)
+                Text(
+                    text = "Sinopsis: ${pelicula.sinopsis}",
+                    style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Género: ${pelicula.genero}",
+                    style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Año: ${pelicula.annoLanzamiento}",
+                    style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "Duración: ${pelicula.duracion}",
+                    style = MaterialTheme.typography.bodySmall)
             }
 
             IconButton(onClick = onDeleteClick) {
