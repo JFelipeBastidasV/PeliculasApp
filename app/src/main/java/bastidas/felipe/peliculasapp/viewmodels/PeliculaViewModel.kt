@@ -19,4 +19,30 @@ class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
     private fun getPeliculas() {
         _peliculas.value = repo.getPeliculas()
     }
+
+    fun addPeliculas(
+        titulo: String,
+        sinopsis: String,
+        genero: String,
+        annoLanzamiento: Int,
+        duracion: String){
+        val nuevoId = _peliculas.value.size + 1
+        val pel = Pelicula(nuevoId,titulo,sinopsis,genero,annoLanzamiento,duracion)
+        repo.addPeliculas(pel)
+
+        _peliculas.value = repo.getPeliculas()
+    }
+
+    fun delPeliculas(
+        titulo: String,
+        sinapsis: String,
+        genero: String,
+        annoLanzamiento: Int,
+        duracion: String
+    ){
+        val pel = Pelicula(0,titulo,sinapsis,genero,annoLanzamiento,duracion)
+        repo.delPeliculas(pel)
+
+        _peliculas.value = repo.getPeliculas()
+    }
 }
