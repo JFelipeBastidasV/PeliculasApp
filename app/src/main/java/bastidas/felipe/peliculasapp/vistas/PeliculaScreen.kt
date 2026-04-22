@@ -1,7 +1,14 @@
 package bastidas.felipe.peliculasapp.vistas
 
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,10 +16,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
@@ -37,11 +47,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import bastidas.felipe.peliculasapp.modelos.Pelicula
 import bastidas.felipe.peliculasapp.viewmodels.PeliculaViewModel
+import coil3.compose.AsyncImage
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -88,7 +103,8 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
                             sinapsis = pelicula.sinopsis,
                             genero = pelicula.genero,
                             annoLanzamiento = pelicula.annoLanzamiento,
-                            duracion = pelicula.duracion
+                            duracion = pelicula.duracion,
+                            pelicula.fotoUri
                         )
                         Toast.makeText(
                             context,
@@ -103,13 +119,14 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
         if (showDialog) {
             AgregarPeliculaDialog(
                 onDismiss = { showDialog = false },
-                onConfirm = { titulo, sinopsis, genero, anno, duracion ->
+                onConfirm = { titulo, sinopsis, genero, anno, duracion, uri->
                     viewModel.addPeliculas(
                         titulo,
                         sinopsis,
                         genero,
                         anno,
-                        duracion)
+                        duracion,
+                        uri)
                     showDialog = false
                     Toast.makeText(
                         context,
@@ -134,7 +151,23 @@ fun PeliculaCard(pelicula: Pelicula, onDeleteClick: () -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+
             Column(modifier = Modifier.weight(1f)) {
+
+                if (pelicula.fotoUri != null) {
+                    AsyncImage(
+                        model = pelicula.fotoUri,
+                        contentDescription = "Layer",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(pelicula.foto),
+                        contentDescription = "Avatar",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
                 Text(
                     text = pelicula.titulo,
                     style = MaterialTheme.typography.titleLarge)
@@ -166,19 +199,55 @@ fun PeliculaCard(pelicula: Pelicula, onDeleteClick: () -> Unit) {
 @Composable
 fun AgregarPeliculaDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, Int, String) -> Unit
+    onConfirm: (String, String, String, Int, String, String?) -> Unit
 ) {
     var titulo by remember { mutableStateOf("") }
     var sinopsis by remember { mutableStateOf("") }
     var genero by remember { mutableStateOf("") }
     var anno by remember { mutableStateOf("") }
     var duracion by remember { mutableStateOf("") }
+    var foto by remember { mutableStateOf<Uri?>(null) }
+
+    var launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+
+    ) { uri: Uri? ->
+        foto = uri
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Agregar Nueva Película") },
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
+
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color.LightGray)
+                        .clickable{
+                            launcher.launch("image/*")
+                        }
+                ) {
+                    if (foto != null){
+                        AsyncImage(
+                            model = foto,
+                            contentDescription =  "Layer",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountBox,
+                            contentDescription = "Layer",
+                            modifier = Modifier
+                                .size(48.dp)
+                        )
+                    }
+                }
                 OutlinedTextField(
                     value = titulo,
                     onValueChange = { titulo = it },
@@ -220,7 +289,7 @@ fun AgregarPeliculaDialog(
             Button(
                 onClick = {
                     val annoInt = anno.toIntOrNull() ?: 0
-                    onConfirm(titulo, sinopsis, genero, annoInt, duracion)
+                    onConfirm(titulo, sinopsis, genero, annoInt, duracion, foto?.toString())
                 }
             ) {
                 Text("Guardar")

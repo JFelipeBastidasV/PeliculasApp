@@ -1,9 +1,11 @@
 package bastidas.felipe.peliculasapp.vistas
 
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +23,7 @@ import bastidas.felipe.peliculasapp.modelos.Usuario
 import bastidas.felipe.peliculasapp.viewmodels.UsuarioViemModel
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.ui.res.painterResource
 
 @Composable
 fun UsuarioScreen(viewModel: UsuarioViemModel){
@@ -72,6 +75,11 @@ fun UsuarioCard(usuario: Usuario){
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
+/*            Image(
+                painter = painterResource(usuario.foto),
+                contentDescription = "Avatar",
+                modifier = Modifier.fillMaxWidth()
+            )*/
             Text(text = usuario.nombre)
             Text(text = usuario.correo)
             Text(text = usuario.edad.toString())

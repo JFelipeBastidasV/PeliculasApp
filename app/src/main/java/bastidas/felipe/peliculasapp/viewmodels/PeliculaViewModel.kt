@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import bastidas.felipe.peliculasapp.modelos.Pelicula
 import androidx.compose.runtime.State
+import bastidas.felipe.peliculasapp.R
 import bastidas.felipe.peliculasapp.modelos.PeliculaRepositorio
 
 class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
@@ -25,9 +26,12 @@ class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
         sinopsis: String,
         genero: String,
         annoLanzamiento: Int,
-        duracion: String){
+        duracion: String,
+        uri: String?){
         val nuevoId = _peliculas.value.size + 1
-        val pel = Pelicula(nuevoId,titulo,sinopsis,genero,annoLanzamiento,duracion)
+
+        val imagenPorDefecto = if (uri != null) 0 else R.drawable.sdla
+        val pel = Pelicula(nuevoId,titulo,sinopsis,genero,annoLanzamiento,duracion, imagenPorDefecto, uri)
         repo.addPeliculas(pel)
 
         _peliculas.value = repo.getPeliculas()
@@ -38,9 +42,12 @@ class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
         sinapsis: String,
         genero: String,
         annoLanzamiento: Int,
-        duracion: String
+        duracion: String,
+        uri: String?
+
     ){
-        val pel = Pelicula(0,titulo,sinapsis,genero,annoLanzamiento,duracion)
+        val imagenPorDefecto = if (uri != null) 0 else R.drawable.sdla
+        val pel = Pelicula(0,titulo,sinapsis,genero,annoLanzamiento,duracion, imagenPorDefecto, uri)
         repo.delPeliculas(pel)
 
         _peliculas.value = repo.getPeliculas()

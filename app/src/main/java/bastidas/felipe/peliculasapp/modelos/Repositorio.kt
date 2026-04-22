@@ -1,5 +1,7 @@
 package bastidas.felipe.peliculasapp.modelos
 
+import bastidas.felipe.peliculasapp.R
+
 class Repositorio {
 
     private val usuarios = mutableListOf(
