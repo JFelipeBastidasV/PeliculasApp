@@ -39,7 +39,7 @@ class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
 
     fun delPeliculas(
         titulo: String,
-        sinapsis: String,
+        sinopsis: String,
         genero: String,
         annoLanzamiento: Int,
         duracion: String,
@@ -47,8 +47,32 @@ class PeliculaViewModel(val repo: PeliculaRepositorio): ViewModel() {
 
     ){
         val imagenPorDefecto = if (uri != null) 0 else R.drawable.sdla
-        val pel = Pelicula(0,titulo,sinapsis,genero,annoLanzamiento,duracion, imagenPorDefecto, uri)
+        val pel = Pelicula(0,titulo,sinopsis,genero,annoLanzamiento,duracion, imagenPorDefecto, uri)
         repo.delPeliculas(pel)
+
+        _peliculas.value = repo.getPeliculas()
+    }
+
+    fun editarPelicula(
+        id: Int,
+        titulo: String,
+        sinopsis: String,
+        genero: String,
+        annoLanzamiento: Int,
+        duracion: String,
+        uri: String?
+    ){
+        val imagenPorDefecto = if (uri != null) 0 else R.drawable.sdla
+        val peli = Pelicula(
+            id,
+            titulo,
+            sinopsis,
+            genero,
+            annoLanzamiento,
+            duracion,
+            imagenPorDefecto,
+            uri)
+        repo.editPeliculas(peli)
 
         _peliculas.value = repo.getPeliculas()
     }
