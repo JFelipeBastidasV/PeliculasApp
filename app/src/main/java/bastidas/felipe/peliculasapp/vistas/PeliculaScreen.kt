@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -67,6 +68,8 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
 
     var showDialog by remember { mutableStateOf(false) }
 
+    var pelicula_editable by remember { mutableStateOf<Pelicula?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -97,10 +100,13 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
             items(peliculas) { pelicula ->
                 PeliculaCard(
                     pelicula = pelicula,
+                    onLongClick = {
+                        pelicula_editable = pelicula
+                    },
                     onDeleteClick = {
                         viewModel.delPeliculas(
                             titulo = pelicula.titulo,
-                            sinapsis = pelicula.sinopsis,
+                            sinopsis = pelicula.sinopsis,
                             genero = pelicula.genero,
                             annoLanzamiento = pelicula.annoLanzamiento,
                             duracion = pelicula.duracion,
@@ -135,13 +141,28 @@ fun PeliculaScreen(viewModel: PeliculaViewModel) {
                 }
             )
         }
+
+        pelicula_editable?.let { pelicula ->
+            EditarPeliculaDialog(
+                pelicula = pelicula,
+                onDismiss = { pelicula_editable = null},
+                onConfirm = { id , titulo, sinopsis, genero, annoInt, duracion, fotoUri  ->
+                    viewModel.editarPelicula(id,titulo,sinopsis,genero,annoInt,duracion,fotoUri)
+                    pelicula_editable = null
+                }
+            )
+
+        }
     }
 }
 
 @Composable
-fun PeliculaCard(pelicula: Pelicula, onDeleteClick: () -> Unit) {
+fun PeliculaCard(pelicula: Pelicula, onLongClick: () -> Unit, onDeleteClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().combinedClickable(
+            onClick = {},
+            onLongClick = onLongClick
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Row(
@@ -293,6 +314,115 @@ fun AgregarPeliculaDialog(
                 }
             ) {
                 Text("Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar")
+            }
+        }
+    )
+}
+
+
+@Composable
+fun EditarPeliculaDialog(
+    pelicula: Pelicula,
+    onDismiss: () -> Unit,
+    onConfirm: (Int, String, String, String, Int, String, String?) -> Unit
+) {
+    var titulo by remember { mutableStateOf(pelicula.titulo) }
+    var sinopsis by remember { mutableStateOf(pelicula.sinopsis) }
+    var genero by remember { mutableStateOf(pelicula.genero) }
+    var anno by remember { mutableStateOf(pelicula.annoLanzamiento.toString()) }
+    var duracion by remember { mutableStateOf(pelicula.duracion) }
+    var foto by remember { mutableStateOf<Uri?>(pelicula.fotoUri?.let { Uri.parse(it) }) }
+
+    var launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+
+    ) { uri: Uri? ->
+        foto = uri
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar pelicula") },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .clip(CircleShape)
+                        .background(Color.LightGray)
+                        .clickable{
+                            launcher.launch("image/*")
+                        }
+                ) {
+                    if (foto != null){
+                        AsyncImage(
+                            model = foto,
+                            contentDescription =  "Layer",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.AccountBox,
+                            contentDescription = "Layer",
+                            modifier = Modifier
+                                .size(48.dp)
+                        )
+                    }
+                }
+                OutlinedTextField(
+                    value = titulo,
+                    onValueChange = { titulo = it },
+                    label = { Text("Título") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = sinopsis,
+                    onValueChange = { sinopsis = it },
+                    label = { Text("Sinopsis") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = genero,
+                    onValueChange = { genero = it },
+                    label = { Text("Género") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = anno,
+                    onValueChange = { newValue ->
+                        if (newValue.all { char -> char.isDigit() } && newValue.length <= 4) {
+                            anno = newValue
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text("Año de Lanzamiento") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = duracion,
+                    onValueChange = { duracion = it },
+                    label = { Text("Duración (ej. 2h 10min)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val annoInt = anno.toIntOrNull() ?: 0
+                    onConfirm(pelicula.id, titulo, sinopsis, genero, annoInt, duracion, foto?.toString())
+                }
+            ) {
+                Text("Editar")
             }
         },
         dismissButton = {
